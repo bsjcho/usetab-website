@@ -1,0 +1,71 @@
+{
+  "name": "Tab",
+  "description": "Micropayments for AI agents. Fiat-native. Sub-cent transactions.",
+  "version": "0.1.0",
+  "status": "development",
+  "api": {
+    "base_url": "https://api.usetab.dev",
+    "version": "v1",
+    "auth": {
+      "type": "bearer",
+      "header": "Authorization",
+      "prefix": "Bearer"
+    }
+  },
+  "endpoints": {
+    "pay": {
+      "method": "POST",
+      "path": "/v1/pay",
+      "description": "Transfer funds to another agent or tool",
+      "request": {
+        "to": "string (recipient ID)",
+        "amount_microcents": "integer",
+        "memo": "string (optional)"
+      },
+      "response": {
+        "id": "string (transaction ID)",
+        "payment_token": "string (use to prove payment)",
+        "amount_microcents": "integer",
+        "balance_after_microcents": "integer"
+      }
+    },
+    "verify": {
+      "method": "POST",
+      "path": "/v1/verify",
+      "description": "Verify a payment token (for tool builders)",
+      "request": {
+        "payment_token": "string",
+        "expected_amount_microcents": "integer (optional)"
+      },
+      "response": {
+        "valid": "boolean",
+        "from": "string (payer agent ID)",
+        "amount_microcents": "integer"
+      }
+    },
+    "balance": {
+      "method": "GET",
+      "path": "/v1/balance",
+      "description": "Check account balance",
+      "response": {
+        "balance_microcents": "integer",
+        "balance_formatted": "string"
+      }
+    }
+  },
+  "human_signup": "https://usetab.dev/signup",
+  "docs": "https://usetab.dev/docs",
+  "contact": "hello@usetab.dev",
+  "pricing": {
+    "funding_ach": "free",
+    "funding_card": "2.9%",
+    "transfers": "free",
+    "withdrawal_standard": "free",
+    "withdrawal_instant": "1.5%"
+  },
+  "units": {
+    "name": "microcents",
+    "per_cent": 1000000,
+    "per_dollar": 100000000
+  }
+}

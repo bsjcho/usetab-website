@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tab — Micropayments for AI Agents</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      line-height: 1.6;
+      color: #1a1a1a;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 3rem 1.5rem;
+    }
+    h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
+    h2 { font-size: 1.5rem; margin-top: 2.5rem; margin-bottom: 1rem; color: #333; }
+    h3 { font-size: 1.1rem; margin-top: 1.5rem; margin-bottom: 0.5rem; }
+    p { margin-bottom: 1rem; }
+    .tagline { font-size: 1.25rem; color: #666; margin-bottom: 2rem; }
+    ul { margin-left: 1.5rem; margin-bottom: 1rem; }
+    li { margin-bottom: 0.5rem; }
+    code {
+      background: #f4f4f4;
+      padding: 0.2rem 0.4rem;
+      border-radius: 3px;
+      font-size: 0.9rem;
+    }
+    pre {
+      background: #f4f4f4;
+      padding: 1rem;
+      border-radius: 6px;
+      overflow-x: auto;
+      margin-bottom: 1rem;
+    }
+    pre code { background: none; padding: 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1.5rem;
+    }
+    th, td {
+      text-align: left;
+      padding: 0.75rem;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    th { font-weight: 600; }
+    a { color: #0066cc; }
+    .section { margin-bottom: 2rem; }
+    .note {
+      background: #f8f9fa;
+      border-left: 3px solid #0066cc;
+      padding: 1rem;
+      margin: 1.5rem 0;
+    }
+    footer {
+      margin-top: 4rem;
+      padding-top: 2rem;
+      border-top: 1px solid #e0e0e0;
+      color: #666;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Tab</h1>
+  <p class="tagline">Micropayments for AI agents. Fiat-native. Sub-cent transactions.</p>
+
+  <div class="section">
+    <h2>The Problem</h2>
+    <p>AI agents need to pay each other for services — API calls, data lookups, compute — but:</p>
+    <ul>
+      <li><strong>Crypto solutions</strong> (x402, Lightning) add complexity and require on-ramps</li>
+      <li><strong>Traditional rails</strong> (Stripe) have per-transaction fees ($0.30+) making micropayments impossible</li>
+      <li><strong>No pure-fiat A2A solution exists</strong> for sub-cent transactions</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2>The Model</h2>
+    <p>Tab works like Venmo — for agents:</p>
+    <ul>
+      <li>Human does KYC once, funds account</li>
+      <li>Agents transact internally (free, instant, sub-cent)</li>
+      <li>Real money only moves on funding/withdrawal</li>
+    </ul>
+    <pre><code>Human funds $100 → Tab ledger
+  ├── Agent A: balance
+  ├── Agent B: balance
+  └── Agent C: balance
+
+Agent A pays Agent B $0.000003 for a lookup
+→ Just a ledger entry, instant, free
+→ Real money only moves on funding/withdrawal</code></pre>
+  </div>
+
+  <div class="section">
+    <h2>Key Differentiators</h2>
+    <table>
+      <tr>
+        <th>Feature</th>
+        <th>Tab</th>
+        <th>Stripe</th>
+        <th>x402 (Crypto)</th>
+      </tr>
+      <tr>
+        <td>Min transaction</td>
+        <td>$0.000001</td>
+        <td>~$0.50</td>
+        <td>$0.00025</td>
+      </tr>
+      <tr>
+        <td>A2A transfers</td>
+        <td>Yes</td>
+        <td>No</td>
+        <td>Yes</td>
+      </tr>
+      <tr>
+        <td>Fiat-native</td>
+        <td>Yes</td>
+        <td>Yes</td>
+        <td>No (stablecoins)</td>
+      </tr>
+      <tr>
+        <td>KYC required</td>
+        <td>Once (human)</td>
+        <td>Per merchant</td>
+        <td>No</td>
+      </tr>
+      <tr>
+        <td>Settlement</td>
+        <td>Instant (internal)</td>
+        <td>2 days</td>
+        <td>~400ms on-chain</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="section">
+    <h2>For Agents</h2>
+    <p>Machine-readable manifest: <a href="/.well-known/tab.json">/.well-known/tab.json</a></p>
+    <pre><code>POST api.usetab.dev/v1/pay
+Authorization: Bearer {api_key}
+
+{
+  "to": "tool_premium-lookup",
+  "amount_microcents": 2000,
+  "memo": "company data lookup"
+}</code></pre>
+  </div>
+
+  <div class="section">
+    <h2>For Humans</h2>
+    <p>Your agent needs Tab to pay for tools and services.</p>
+    <ol>
+      <li>Sign up (coming soon)</li>
+      <li>Complete identity verification (~2 minutes)</li>
+      <li>Fund your account</li>
+      <li>Give your agent the API key</li>
+    </ol>
+  </div>
+
+  <div class="section">
+    <h2>For Tool Builders</h2>
+    <p>Accept Tab payments in your MCP server:</p>
+    <pre><code>from tab_payments import verify_payment
+
+@server.tool()
+@requires_payment(amount_microcents=2000)
+async def lookup(query: str) -> str:
+    """Look up company data."""
+    return await do_lookup(query)</code></pre>
+  </div>
+
+  <div class="section">
+    <h2>Pricing</h2>
+    <table>
+      <tr><td>Funding (bank transfer)</td><td>Free</td></tr>
+      <tr><td>Funding (card)</td><td>2.9%</td></tr>
+      <tr><td>Agent-to-agent transfers</td><td><strong>Free</strong></td></tr>
+      <tr><td>Withdrawal (standard)</td><td>Free</td></tr>
+      <tr><td>Withdrawal (instant)</td><td>1.5%</td></tr>
+    </table>
+  </div>
+
+  <div class="section">
+    <h2>Status</h2>
+    <p>Currently in development. Interested in early access? Contact: <a href="mailto:hello@usetab.dev">hello@usetab.dev</a></p>
+  </div>
+
+  <footer>
+    <p>Tab — Micropayments for AI agents</p>
+  </footer>
+</body>
+</html>
